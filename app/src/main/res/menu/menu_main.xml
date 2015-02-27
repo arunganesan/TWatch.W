@@ -1,0 +1,26 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+    <item android:id="@+id/chirpSound" android:title="Chirp"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/whitenoiseSound" android:title="Whitenoise"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/goldSound" android:title="Gold"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/pnSound" android:title="PN"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/highWhitenoiseSound" android:title="High Freq WN"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/highWhitenoiseHannSound" android:title="High Freq WN + Hanning"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/highChirpSound" android:title="High Freq Chirp"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/highChirpHannSound" android:title="High Freq Chirp + Hanning"
+        android:orderInCategory="100" android:showAsAction="never" />
+</menu>
