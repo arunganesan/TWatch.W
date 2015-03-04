@@ -62,10 +62,10 @@ public class Recorder {
 
         AutomaticGainControl.create(rid).setEnabled(false);
         AcousticEchoCanceler.create(rid).setEnabled(false);
-        new BassBoost(1000, rid).setEnabled(false);//BassBoost.create?
-        new EnvironmentalReverb(1000, rid).setEnabled(false);//EnvironmentalReverb?
-        new Equalizer(1000, rid).setEnabled(false);
-        new LoudnessEnhancer(rid).setEnabled(false);
+        //new BassBoost(1000, rid).setEnabled(false);//BassBoost.create?
+        //new EnvironmentalReverb(1000, rid).setEnabled(false);//EnvironmentalReverb?
+        //new Equalizer(1000, rid).setEnabled(false);
+        //new LoudnessEnhancer(rid).setEnabled(false);
         NoiseSuppressor.create(rid).setEnabled(false);
     }
 
@@ -74,7 +74,7 @@ public class Recorder {
 
         recorder = new AudioRecord(RECORDER_SOURCE, RECORDER_SAMPLERATE, RECORDER_CHANNELS,RECORDER_AUDIO_ENCODING, bufferSize);
 
-        turnOffAllEffects(recorder);
+        //turnOffAllEffects(recorder);
 
         recorder.startRecording();
         isRecording = true;

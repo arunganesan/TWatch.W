@@ -166,24 +166,25 @@ public class MainActivity extends Activity {
         */
 
 
-        int id = item.getItemId();
-        if (id == R.id.restartBluetooth) {
-            new Thread (new Runnable() {
-                @Override
-                public void run () {
-                    masterShutdown();
-                    setupBluetooth();
-                }
-            }).start();
-        } else if (id == R.id.changeMode) {
-            if (parentView.findViewById(single.getId()) != null) setMode(Mode.DRAW);
-            else setMode(Mode.SINGLE);
-        } else if (id == R.id.volumeHigh) {
-            player.setSoftwareVolume(0.25);
-        } else if (id == R.id.volumeLow) {
-            player.setSoftwareVolume(0.05);
-        } else if (id == R.id.volumeMedium) {
-            player.setSoftwareVolume(0.1);
+        switch (item.getItemId()) {
+            case R.id.restartBluetooth:
+                new Thread (new Runnable() {
+                    @Override
+                    public void run () {
+                        masterShutdown();
+                        setupBluetooth();
+                    }
+                }).start();
+                break;
+            case R.id.changeMode:
+                if (parentView.findViewById(single.getId()) != null) setMode(Mode.DRAW);
+                else setMode(Mode.SINGLE);
+                break;
+            case R.id.volumeLowest: player.setSoftwareVolume(0.005); break;
+            case R.id.volumeLow: player.setSoftwareVolume(0.05); break;
+            case R.id.volumeMedium: player.setSoftwareVolume(0.5); break;
+            case R.id.volumeHigh: player.setSoftwareVolume(0.75); break;
+            case R.id.volumeHighest: player.setSoftwareVolume(1); break;
         }
 
         return super.onOptionsItemSelected(item);
