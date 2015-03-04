@@ -101,7 +101,7 @@ class SocketThread  {
                     } else {
                         if (tap.howMany() == 0 && tap.isTapOpen() == false) tap.emptyBuffer();
                         //Log.v(TAG, "Writing nothing, sleeping.");
-                        Thread.sleep(500);
+                        //Thread.sleep(500);
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Got exception - " + e.getLocalizedMessage());

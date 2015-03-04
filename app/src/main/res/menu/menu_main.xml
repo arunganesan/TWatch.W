@@ -1,5 +1,23 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+
+
+    <item android:id="@+id/restartBluetooth" android:title="Bluetooth"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/changeMode" android:title="Change mode"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/volumeLow" android:title="Low volume"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/volumeMedium" android:title="Medium volume"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/volumeHigh" android:title="High volume"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <!--
     <item android:id="@+id/chirpSound" android:title="Chirp"
         android:orderInCategory="100" android:showAsAction="never" />
 
@@ -23,4 +41,5 @@
 
     <item android:id="@+id/highChirpHannSound" android:title="High Freq Chirp + Hanning"
         android:orderInCategory="100" android:showAsAction="never" />
+    -->
 </menu>

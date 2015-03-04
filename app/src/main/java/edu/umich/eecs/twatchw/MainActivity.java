@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,8 +26,10 @@ import java.util.Set;
 
 
 public class MainActivity extends Activity {
-    TextView statusText;
     SharedPreferences sp;
+    ImageView bt, single, draw;
+    FrameLayout parentView;
+    enum Mode {CONNECTION, SINGLE, DRAW};
 
     SocketThread bsocket;
     BluetoothAdapter mBluetoothAdapter;
@@ -35,6 +38,7 @@ public class MainActivity extends Activity {
     TapBuffer tap;
     Recorder recorder;
     MainActivity mainActivity;
+
 
     String TAG = "MainActivity";
 
@@ -78,7 +82,6 @@ public class MainActivity extends Activity {
         tap = new SpiralBuffer("BTap", this);
         recorder = new Recorder(this, tap);
         recorder.startRecording();
-
         player.turnOffSound(true);
 
         // Defaults
@@ -88,12 +91,13 @@ public class MainActivity extends Activity {
     }
 
     private void wireUI () {
-        statusText = (TextView)findViewById(R.id.statusText);
-        ((ImageView)findViewById(R.id.chirpStream)).setOnClickListener(chirpStreamListener);
-        ((ImageView)findViewById(R.id.resyncBT)).setOnClickListener(restartBT);
+        bt = (ImageView)findViewById(R.id.connectionImage);
+        single = (ImageView)findViewById(R.id.tap);
+        draw = (ImageView)findViewById(R.id.draw);
+        single.setOnClickListener(chirpStreamListener);
+        draw.setOnClickListener(chirpStreamListener);
+        parentView = (FrameLayout)findViewById(R.id.parentView);
     }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -114,7 +118,15 @@ public class MainActivity extends Activity {
         }
 
         bsocket.cancel();
-        statusText.setText("Disconnected");
+        setMode(Mode.CONNECTION);
+    }
+
+    public void setMode (Mode mode) {
+        //if (mode == C)
+        parentView.removeAllViews();
+        if (mode == Mode.CONNECTION) parentView.addView(bt);
+        if (mode == Mode.SINGLE) parentView.addView(single);
+        if (mode == Mode.DRAW) parentView.addView(draw);
     }
 
     @Override
@@ -130,22 +142,42 @@ public class MainActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        Map<Integer, short[]> map = new HashMap<Integer, short[]>();
-        map.put(R.id.chirpSound, Player.CHIRP);
+        //Map<Integer, short[]> map = new HashMap<Integer, short[]>();
+        //map.put(R.id.chirpSound, Player.CHIRP);
         /*
         map.put(R.id.pnSound, Player.PN);
         map.put(R.id.goldSound, Player.GOLD);
         */
 
+        /*
         map.put(R.id.whitenoiseSound, Player.WN);
+
         map.put(R.id.highWhitenoiseSound, Player.WNHIGH);
         map.put(R.id.highWhitenoiseHannSound, Player.WNHIGHHANN);
         map.put(R.id.highChirpSound, Player.CHIRPHIGH);
         map.put(R.id.highChirpHannSound, Player.CHIRPHIGHHANN);
+        */
 
 
         int id = item.getItemId();
-        player.changeSound(map.get(id));
+        if (id == R.id.restartBluetooth) {
+            new Thread (new Runnable() {
+                @Override
+                public void run () {
+                    masterShutdown();
+                    setupBluetooth();
+                }
+            }).start();
+        } else if (id == R.id.changeMode) {
+            if (parentView.findViewById(single.getId()) != null) setMode(Mode.DRAW);
+            else setMode(Mode.SINGLE);
+        } else if (id == R.id.volumeHigh) {
+            player.setSoftwareVolume(0.25);
+        } else if (id == R.id.volumeLow) {
+            player.setSoftwareVolume(0.05);
+        } else if (id == R.id.volumeMedium) {
+            player.setSoftwareVolume(0.1);
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -156,11 +188,11 @@ public class MainActivity extends Activity {
         sp.edit().putString("phone address", socket.getRemoteDevice().getAddress()).commit();
         bsocket = new SocketThread(socket, this, tap);
         bsocket.start();
-        statusText.setText("Connected");
+        setMode(Mode.SINGLE);
     }
 
     void setupBluetooth () {
-        statusText.setText("Connecting...");
+        setMode(Mode.CONNECTION);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         int REQUEST_ENABLE_BT = 1;
         if (!mBluetoothAdapter.isEnabled()) {
@@ -177,13 +209,13 @@ public class MainActivity extends Activity {
         new BluetoothServer(mBluetoothAdapter, this).start();
     }
 
-    Runnable chirpStreamRunner = new Runnable () {
+    Runnable chirpStreamRunnerShort = new Runnable () {
       @Override
       public void run () {
           //player.flipSound();
           player.chirp();
           tap.openTap();
-          try { Thread.sleep(5000); } catch (Exception e) {}
+          try { Thread.sleep(2000); } catch (Exception e) {}
           player.stopChirp();
           tap.closeTap();
           //player.flipSound();
@@ -204,15 +236,17 @@ public class MainActivity extends Activity {
 
         @Override
         public void onClick(View v) {
-            (new Thread(chirpStreamRunner)).start();
-        }
-    };
-
-    View.OnClickListener restartBT = new View.OnClickListener() {
-        @Override
-        public void onClick (View v) {
-            masterShutdown();
-            setupBluetooth();
+            if (v.getId() == R.id.tap) {
+                (new Thread(chirpStreamRunnerShort)).start();
+            } else {
+                if (player.isSoundOn()) {
+                    player.stopChirp();
+                    tap.closeTap();
+                } else {
+                    player.chirp();
+                    tap.openTap();
+                }
+            }
         }
     };
 
