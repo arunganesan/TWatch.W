@@ -9,6 +9,13 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.media.audiofx.AcousticEchoCanceler;
+import android.media.audiofx.AutomaticGainControl;
+import android.media.audiofx.BassBoost;
+import android.media.audiofx.EnvironmentalReverb;
+import android.media.audiofx.Equalizer;
+import android.media.audiofx.LoudnessEnhancer;
+import android.media.audiofx.NoiseSuppressor;
 import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
@@ -45,8 +52,30 @@ public class Recorder {
         bufferSize = AudioRecord.getMinBufferSize(RECORDER_SAMPLERATE,RECORDER_CHANNELS,RECORDER_AUDIO_ENCODING);
     }
 
+    public void turnOffAllEffects (AudioRecord recorder) {
+        if (recorder == null) {
+            Log.e(TAG, "Recorder not initialized");
+            return;
+        }
+
+        int rid = recorder.getAudioSessionId();
+
+        AutomaticGainControl.create(rid).setEnabled(false);
+        AcousticEchoCanceler.create(rid).setEnabled(false);
+        new BassBoost(1000, rid).setEnabled(false);//BassBoost.create?
+        new EnvironmentalReverb(1000, rid).setEnabled(false);//EnvironmentalReverb?
+        new Equalizer(1000, rid).setEnabled(false);
+        new LoudnessEnhancer(rid).setEnabled(false);
+        NoiseSuppressor.create(rid).setEnabled(false);
+    }
+
     public void startRecording(){
+
+
         recorder = new AudioRecord(RECORDER_SOURCE, RECORDER_SAMPLERATE, RECORDER_CHANNELS,RECORDER_AUDIO_ENCODING, bufferSize);
+
+        turnOffAllEffects(recorder);
+
         recorder.startRecording();
         isRecording = true;
         new Thread(new Runnable() {

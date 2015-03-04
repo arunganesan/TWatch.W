@@ -88,6 +88,13 @@ public class MainActivity extends Activity {
         player.setSoftwareVolume(0.1);
         player.setSpace((int)(0.05*44100));
         player.startPlaying();
+
+
+        // AGC Test
+
+        //AGCTest agcTest = new AGCTest();
+        //agcTest.test3_1AgcCreateAndRelease();
+        //agcTest.test3_2AgcSetEnabledGetEnabled();
     }
 
     private void wireUI () {
