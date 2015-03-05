@@ -20,6 +20,8 @@ class SocketThread  {
     byte STOP_AUTOTUNE = 1;
     byte START_BORDER= 2;
     byte START_NORMAL = 3;
+    byte DO_TAP = 4;
+    byte DO_DRAW = 5;
 
     private byte [] sendBuffer = new byte [44100];
 
@@ -78,6 +80,8 @@ class SocketThread  {
                         }
                         else if (command == STOP_AUTOTUNE) myactivity.player.stopChirp();
                         else if (command == START_NORMAL) myactivity.player.changeSound(Player.WN);
+                        else if (command == DO_TAP) myactivity.single.callOnClick();
+                        else if (command == DO_DRAW) myactivity.draw.callOnClick();
                     }
                 } catch (IOException e) {
                     break;
