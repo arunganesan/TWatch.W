@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
         player.turnOffSound(true);
 
         // Defaults
-        player.setSoftwareVolume(0.1);
+        player.setSoftwareVolume(0.4);
         player.setSpace((int)(0.05*44100));
         player.startPlaying();
 
@@ -171,10 +171,10 @@ public class MainActivity extends Activity {
                 if (parentView.findViewById(single.getId()) != null) setMode(Mode.DRAW);
                 else setMode(Mode.SINGLE);
                 break;
-            case R.id.volumeLowest: player.setSoftwareVolume(0.005); break;
-            case R.id.volumeLow: player.setSoftwareVolume(0.05); break;
-            case R.id.volumeMedium: player.setSoftwareVolume(0.1); break;
-            case R.id.volumeHigh: player.setSoftwareVolume(0.5); break;
+            case R.id.volumeLowest: player.setSoftwareVolume(0.2); break;
+            case R.id.volumeLow: player.setSoftwareVolume(0.4); break;
+            case R.id.volumeMedium: player.setSoftwareVolume(0.6); break;
+            case R.id.volumeHigh: player.setSoftwareVolume(0.8); break;
             case R.id.volumeHighest: player.setSoftwareVolume(1); break;
         }
 
