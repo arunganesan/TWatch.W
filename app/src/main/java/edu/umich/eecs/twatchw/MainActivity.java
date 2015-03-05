@@ -2,34 +2,25 @@ package edu.umich.eecs.twatchw;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 
 public class MainActivity extends Activity {
     SharedPreferences sp;
     ImageView bt, single, draw;
     FrameLayout parentView;
-    enum Mode {CONNECTION, SINGLE, DRAW};
+    enum Mode {CONNECTION, SINGLE, DRAW}
 
     SocketThread bsocket;
     BluetoothAdapter mBluetoothAdapter;
@@ -40,7 +31,7 @@ public class MainActivity extends Activity {
     MainActivity mainActivity;
 
 
-    String TAG = "MainActivity";
+    //String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,8 +173,8 @@ public class MainActivity extends Activity {
                 break;
             case R.id.volumeLowest: player.setSoftwareVolume(0.005); break;
             case R.id.volumeLow: player.setSoftwareVolume(0.05); break;
-            case R.id.volumeMedium: player.setSoftwareVolume(0.5); break;
-            case R.id.volumeHigh: player.setSoftwareVolume(0.75); break;
+            case R.id.volumeMedium: player.setSoftwareVolume(0.1); break;
+            case R.id.volumeHigh: player.setSoftwareVolume(0.5); break;
             case R.id.volumeHighest: player.setSoftwareVolume(1); break;
         }
 
