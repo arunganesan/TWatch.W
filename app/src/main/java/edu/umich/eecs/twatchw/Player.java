@@ -27,7 +27,6 @@ public class Player {
     int chirpPlayCount = 0, MAXCHIRPS = 100000;
     MainActivity myActivity;
 
-    double softwareVolume = 0.05;
     int SPACE = (int)(44100*0.1);
 
     public Player(MainActivity myActivity) {
@@ -55,8 +54,12 @@ public class Player {
     public void chirp () { silenceOverride = false; }
     public void stopChirp () { silenceOverride = true; }
     public boolean isSoundOn () { return !silenceOverride; }
-    public void setSoftwareVolume (double softwareVolume) { this.softwareVolume = softwareVolume; }
-    public double getSoftwareVolume () { return softwareVolume; }
+    public void setSoftwareVolume (double softwareVolume) {
+        AudioManager am = (AudioManager) myActivity.getSystemService(Context.AUDIO_SERVICE);
+        int maxVol = am.getStreamMaxVolume(am.STREAM_MUSIC);
+        int setVolume = (int) (((float)maxVol) * softwareVolume);
+        am.setStreamVolume(am.STREAM_MUSIC, setVolume, 0);
+    }
 
 
     public void startPlaying () {
@@ -93,10 +96,7 @@ public class Player {
             for (int i = 0; i < buffsize; i++) {
                 if (inChirp) {
                     if (silenceOverride) samples[i] = 0;
-                    else {
-                        if (softwareVolume == 1.0)samples[i] = sound[chirpCount];
-                        else samples[i] = (short) (softwareVolume * sound[chirpCount]);
-                    }
+                    else samples[i] = sound[chirpCount];
 
                     chirpCount++; // Always increment, so it stays in sync
 
