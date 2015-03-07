@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -93,6 +94,8 @@ public class Player {
         boolean inChirp = true; short sample;
 
         while (isRunning) {
+            long start = System.nanoTime();
+
             for (int i = 0; i < buffsize; i++) {
                 if (inChirp) {
                     if (silenceOverride) samples[i] = 0;
@@ -115,6 +118,10 @@ public class Player {
                     }
                 }
             }
+
+            long end = System.nanoTime();
+            double elapsed_in_millis = (end - start)/1000000.0;
+            Log.v(TAG, "Took " + elapsed_in_millis + " to fill a " + ((double)buffsize)/44100.0*1000 + " milli buffer (size=" + buffsize + ")");
 
             audioTrack.write(samples, 0, buffsize);
         }

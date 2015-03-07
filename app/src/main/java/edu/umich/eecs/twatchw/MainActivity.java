@@ -44,6 +44,7 @@ public class MainActivity extends Activity {
         this.mainActivity = this;
         wireUI();
 
+
         /*
         1. If already paired before (in shared settings), then skip to 3
         2. If using for first time, turn on discoverability mode
@@ -56,7 +57,9 @@ public class MainActivity extends Activity {
         -- Can turn on motion detection for some time
          */
 
+        //fakeSetBTSocket();
         setupBluetooth();
+
 
         // To just chirp for auto tuning, we do:
         //player.chirp();
@@ -179,6 +182,10 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void fakeSetBTSocket () {
+        initializeTWatch();
     }
 
     public void setBTSocket (BluetoothSocket socket) {
