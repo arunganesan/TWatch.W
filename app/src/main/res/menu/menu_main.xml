@@ -8,8 +8,12 @@
     <item android:id="@+id/changeMode" android:title="Change mode"
         android:orderInCategory="100" android:showAsAction="never" />
 
+    <item android:id="@+id/volumeSilence" android:title="Silence"
+        android:orderInCategory="100" android:showAsAction="never" />
+
     <item android:id="@+id/volumeLowest" android:title="Lowest"
         android:orderInCategory="100" android:showAsAction="never" />
+
 
     <item android:id="@+id/volumeLow" android:title="Low"
         android:orderInCategory="100" android:showAsAction="never" />
@@ -17,24 +21,10 @@
     <item android:id="@+id/volumeMedium" android:title="Medium"
         android:orderInCategory="100" android:showAsAction="never" />
 
-
     <item android:id="@+id/volumeHigh" android:title="High"
         android:orderInCategory="100" android:showAsAction="never" />
 
     <item android:id="@+id/volumeHighest" android:title="Highest"
-        android:orderInCategory="100" android:showAsAction="never" />
-
-    <!--
-    <item android:id="@+id/chirpSound" android:title="Chirp"
-        android:orderInCategory="100" android:showAsAction="never" />
-
-    <item android:id="@+id/whitenoiseSound" android:title="Whitenoise"
-        android:orderInCategory="100" android:showAsAction="never" />
-
-    <item android:id="@+id/goldSound" android:title="Gold"
-        android:orderInCategory="100" android:showAsAction="never" />
-
-    <item android:id="@+id/pnSound" android:title="PN"
         android:orderInCategory="100" android:showAsAction="never" />
 
     <item android:id="@+id/highWhitenoiseSound" android:title="High Freq WN"
@@ -43,8 +33,26 @@
     <item android:id="@+id/highWhitenoiseHannSound" android:title="High Freq WN + Hanning"
         android:orderInCategory="100" android:showAsAction="never" />
 
+    <item android:id="@+id/chirpSound" android:title="Chirp"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/whitenoiseSound" android:title="Whitenoise"
+        android:orderInCategory="100" android:showAsAction="never" />
+
     <item android:id="@+id/highChirpSound" android:title="High Freq Chirp"
         android:orderInCategory="100" android:showAsAction="never" />
+    <!--
+
+
+    <item android:id="@+id/goldSound" android:title="Gold"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+    <item android:id="@+id/pnSound" android:title="PN"
+        android:orderInCategory="100" android:showAsAction="never" />
+
+
+
+
 
     <item android:id="@+id/highChirpHannSound" android:title="High Freq Chirp + Hanning"
         android:orderInCategory="100" android:showAsAction="never" />
