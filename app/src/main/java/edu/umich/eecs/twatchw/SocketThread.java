@@ -76,10 +76,18 @@ class SocketThread  {
                         int command = buffer[i];
                         if (command == START_AUTOTUNE) {
                             myactivity.player.changeSound(Player.CHIRPFORWARD);
+                            myactivity.player.setSoftwareVolume(0.2);
                             myactivity.player.chirp();
                         }
-                        else if (command == STOP_AUTOTUNE) myactivity.player.stopChirp();
-                        else if (command == START_NORMAL) myactivity.player.changeSound(Player.WN);
+                        else if (command == STOP_AUTOTUNE) {
+                            myactivity.player.stopChirp();
+                            myactivity.player.setSoftwareVolume(0.4);
+                            myactivity.driftDetect();
+                        }
+                        else if (command == START_NORMAL) {
+                            myactivity.player.changeSound(Player.WN);
+                            myactivity.player.setSoftwareVolume(0.4);
+                        }
                         else if (command == DO_TAP) myactivity.single.callOnClick();
                         else if (command == DO_DRAW) myactivity.draw.callOnClick();
                     }

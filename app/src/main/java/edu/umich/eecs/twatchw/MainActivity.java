@@ -83,7 +83,6 @@ public class MainActivity extends Activity {
         player.setSpace((int)(0.05*44100));
         player.startPlaying();
 
-
         // AGC Test
 
         //AGCTest agcTest = new AGCTest();
@@ -118,7 +117,7 @@ public class MainActivity extends Activity {
             if (recorder.recorder != null) recorder.recorder.release();
         }
 
-        bsocket.cancel();
+        if (bsocket != null) bsocket.cancel();
         setMode(Mode.CONNECTION);
     }
 
@@ -235,6 +234,21 @@ public class MainActivity extends Activity {
                 Toast.makeText(mainActivity, message, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+
+    public void driftDetect () {
+        new Thread (new Runnable () {
+            @Override
+            public void run () {
+                try { Thread.sleep(1000); } catch (Exception e) {}
+                player.chirp();
+                tap.openTap();
+                try { Thread.sleep(10000); } catch (Exception e) {}
+                player.stopChirp();
+                tap.closeTap();
+            }
+        }).start();
     }
 
 
