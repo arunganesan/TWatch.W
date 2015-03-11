@@ -70,7 +70,7 @@ public class SpiralBuffer extends TapBuffer {
 
         if (action.equals("add") || action.equals("get")) {
             num_actions++;
-            if (num_actions % 10 == 0) {
+            if (num_actions % 100 == 0) {
                 Log.v(TAG, name + ": Head is " + head + " tail is " + tail + " and size is " + (tail - head));
                 num_actions = 0;
             }

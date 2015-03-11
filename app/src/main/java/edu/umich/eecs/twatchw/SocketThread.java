@@ -81,11 +81,10 @@ class SocketThread  {
                         }
                         else if (command == STOP_AUTOTUNE) {
                             myactivity.player.stopChirp();
-                            myactivity.player.setSoftwareVolume(0.4);
                             myactivity.driftDetect();
                         }
                         else if (command == START_NORMAL) {
-                            myactivity.player.changeSound(Player.WN);
+                            myactivity.player.changeSound(Player.CHIRP);
                             myactivity.player.setSoftwareVolume(0.4);
                         }
                         else if (command == DO_TAP) myactivity.single.callOnClick();
@@ -107,8 +106,12 @@ class SocketThread  {
                 try {
                     if (tap.howMany() != 0) {
                         int len = tap.getSome(sendBuffer, sendBuffer.length);
-                        //Log.v(TAG, "Sending " + len + " samples");
+                        Log.v(TAG, "Sending " + len + " samples");
+                        long start = System.currentTimeMillis();
                         mmOutStream.write(sendBuffer, 0, len);
+                        long end = System.currentTimeMillis();
+
+                        Log.v(TAG, "Bluetooth took " + (end - start) + "ms to send " + len + " values.");
                         //Log.v(TAG, "Writing unblocked");
                     } else {
                         if (tap.howMany() == 0 && tap.isTapOpen() == false) tap.emptyBuffer();
