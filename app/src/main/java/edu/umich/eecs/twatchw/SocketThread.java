@@ -81,11 +81,11 @@ class SocketThread  {
                         }
                         else if (command == STOP_AUTOTUNE) {
                             myactivity.player.stopChirp();
-                            myactivity.driftDetect();
                         }
                         else if (command == START_NORMAL) {
                             myactivity.player.changeSound(Player.CHIRP);
                             myactivity.player.setSoftwareVolume(0.4);
+                            myactivity.driftDetect();
                         }
                         else if (command == DO_TAP) myactivity.single.callOnClick();
                         else if (command == DO_DRAW) myactivity.draw.callOnClick();

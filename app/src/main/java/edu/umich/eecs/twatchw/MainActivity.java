@@ -180,9 +180,9 @@ public class MainActivity extends Activity {
             case R.id.volumeHighest: player.setSoftwareVolume(1); break;
             case R.id.volumeSilence: player.setSoftwareVolume(0); break;
             case R.id.chirpSound: player.changeSound(Player.CHIRP); break;
-            case R.id.whitenoiseSound: player.changeSound(Player.WN); break;
-            case R.id.highChirpSound: player.changeSound(Player.CHIRPHIGH); break;
-            case R.id.highWhitenoiseSound: player.changeSound(Player.WNHIGH); break;
+            //case R.id.whitenoiseSound: player.changeSound(Player.WN); break;
+            //case R.id.highChirpSound: player.changeSound(Player.CHIRPHIGH); break;
+            //case R.id.highWhitenoiseSound: player.changeSound(Player.WNHIGH); break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -253,7 +253,7 @@ public class MainActivity extends Activity {
                 player.stopChirp();
                 tap.closeTap();
             }
-        }).start();
+        }); //.start();
     }
 
 
