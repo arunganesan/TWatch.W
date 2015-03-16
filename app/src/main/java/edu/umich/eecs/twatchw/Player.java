@@ -31,9 +31,9 @@ public class Player {
     int chirpPlayCount = 0, MAXCHIRPS = 100000;
     MainActivity myActivity;
 
+    double currVolume = 0;
 
-
-    int SPACE = (int)(44100*0.1);
+    int SPACE;
 
     public Player(MainActivity myActivity) {
         spaceCounter = SPACE;
@@ -57,14 +57,24 @@ public class Player {
     public void turnOffSound (boolean value) {
         silenceOverride = value;
     }
-    public void chirp () { silenceOverride = false; }
-    public void stopChirp () { silenceOverride = true; }
-    public boolean isSoundOn () { return !silenceOverride; }
+    public void chirp () {
+        silenceOverride = false;
+        setSoftwareVolume(0.4);
+    }
+    public void stopChirp () {
+        setSoftwareVolume(0);
+        //silenceOverride = true;
+    }
+    public boolean isSoundOn () {
+        return currVolume != 0;
+        //return !silenceOverride;
+    }
     public void setSoftwareVolume (double softwareVolume) {
         AudioManager am = (AudioManager) myActivity.getSystemService(Context.AUDIO_SERVICE);
         int maxVol = am.getStreamMaxVolume(am.STREAM_MUSIC);
         int setVolume = (int) (((float)maxVol) * softwareVolume);
         am.setStreamVolume(am.STREAM_MUSIC, setVolume, 0);
+        currVolume = softwareVolume;
     }
 
 
@@ -75,10 +85,15 @@ public class Player {
         for (int i = 0; i < CHIRP.length; i++) sound_track[i] = CHIRP[i];
 
         //buffsize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
-        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, sound_track.length, AudioTrack.MODE_STATIC);
+        setSoftwareVolume(0);
+
+
+        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, sound_track.length*2, AudioTrack.MODE_STATIC);
         audioTrack.write(sound_track, 0, sound_track.length);
-        audioTrack.setLoopPoints(0, sound_track.length, -1);
+        int ret = audioTrack.setLoopPoints(0, sound_track.length, -1);
         audioTrack.play();
+
+        Log.e(TAG, "Return: " + ret);
 
         isRunning = true;
 
