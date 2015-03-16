@@ -31,6 +31,8 @@ public class Player {
     int chirpPlayCount = 0, MAXCHIRPS = 100000;
     MainActivity myActivity;
 
+
+
     int SPACE = (int)(44100*0.1);
 
     public Player(MainActivity myActivity) {
@@ -69,18 +71,24 @@ public class Player {
     public void startPlaying () {
         // Set up audiotrack, start playing on loop until time to stop
 
-        buffsize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
-        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, buffsize, AudioTrack.MODE_STREAM);
+        short [] sound_track = new short [SPACE + CHIRP.length];
+        for (int i = 0; i < CHIRP.length; i++) sound_track[i] = CHIRP[i];
+
+        //buffsize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
+        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, sound_track.length, AudioTrack.MODE_STATIC);
+        audioTrack.write(sound_track, 0, sound_track.length);
+        audioTrack.setLoopPoints(0, sound_track.length, -1);
         audioTrack.play();
+
         isRunning = true;
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-                playLoop();
-            }
-        }).start();
+        //new Thread(new Runnable() {
+        //    @Override
+        //    public void run() {
+        //        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+        //        playLoop();
+        //    }
+        //}).start();
     }
 
     public void stopPlaying() {
