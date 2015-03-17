@@ -31,7 +31,7 @@ public class Player {
     int chirpPlayCount = 0, MAXCHIRPS = 100000;
     MainActivity myActivity;
 
-    int SPACE = (int)(44100*0.1);
+    int SPACE;
 
     public Player(MainActivity myActivity) {
         spaceCounter = SPACE;
