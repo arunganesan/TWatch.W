@@ -3,10 +3,14 @@ package edu.umich.eecs.twatchw;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.nio.ByteBuffer;
 
 class SocketThread  {
     private final BluetoothSocket mmSocket;
@@ -22,6 +26,10 @@ class SocketThread  {
     byte START_NORMAL = 3;
     byte DO_TAP = 4;
     byte DO_DRAW = 5;
+
+    public static byte START = 6;
+    public static byte STOP = 7;
+    public static byte STARTFILE = 8;
 
     private byte [] sendBuffer = new byte [44100];
 
@@ -51,7 +59,7 @@ class SocketThread  {
     public void start () {
         Log.v(TAG, "Starting BT thread");
         (new Thread(listener)).start();
-        (new Thread(writer)).start();
+        //(new Thread(writer)).start();
     }
 
     private int primArray (ArrayList<Byte> array) {
@@ -59,6 +67,49 @@ class SocketThread  {
         for (int i = 0; i < array.size(); i++)
             sendBuffer[i] = array.get(i).byteValue();
         return array.size();
+    }
+
+    public byte[] longToBytes(long x) {
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        buffer.putLong(x);
+        return buffer.array();
+    }
+
+    public long bytesToLong(byte[] bytes) {
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        buffer.put(bytes);
+        buffer.flip();//need flip
+        return buffer.getLong();
+    }
+
+    public void sendFile (final String filename) {
+        new Thread (new Runnable () {
+            @Override
+            public void run () {
+                byte[] data = new byte[4096];
+                FileInputStream in = null;
+                int read = 0;
+                try {
+                    in = new FileInputStream(filename);
+                    long totalAudioLen = in.getChannel().size();
+
+                    boolean error = false;
+                    mmOutStream.write(STARTFILE);
+                    mmOutStream.write(longToBytes(totalAudioLen));
+
+                    while (!error) {
+                        read = in.read(data);
+                        error = (read == -1);
+                        if (error) {
+                            Log.e(TAG, "Encountered error in file send");
+                            break;
+                        }
+                        mmOutStream.write(data, 0, read);
+                    }
+                } catch (Exception e) {}
+            }
+        }).start();
+
     }
 
     Runnable listener = new Runnable () {
@@ -85,7 +136,6 @@ class SocketThread  {
                         else if (command == START_NORMAL) {
                             myactivity.player.changeSound(Player.WN);
                             myactivity.player.setSoftwareVolume(0.4);
-                            myactivity.driftDetect();
                         }
                         else if (command == DO_TAP) myactivity.single.callOnClick();
                         else if (command == DO_DRAW) myactivity.draw.callOnClick();
@@ -130,7 +180,12 @@ class SocketThread  {
         }
     };
 
-
+    public void tellPhone (byte COMMAND) {
+        // The input loop above might be locked on the inputstream.read
+        try {
+            mmOutStream.write(COMMAND);
+        } catch (Exception e) {}
+    }
 
     /* Call this from the main activity to shutdown the connection */
     public void cancel() {

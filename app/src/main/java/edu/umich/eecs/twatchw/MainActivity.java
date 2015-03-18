@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
     TapBuffer tap;
     Recorder recorder;
     MainActivity mainActivity;
+    FileSaver fsaver;
 
 
     //String TAG = "MainActivity";
@@ -77,6 +78,9 @@ public class MainActivity extends Activity {
         recorder = new Recorder(this, tap);
         recorder.startRecording();
         player.turnOffSound(true);
+        fsaver = new FileSaver(this, tap);
+        fsaver.start();
+
 
         // Defaults
         player.setSoftwareVolume(0.4);
@@ -221,13 +225,22 @@ public class MainActivity extends Activity {
     Runnable chirpStreamRunnerShort = new Runnable () {
       @Override
       public void run () {
-          //player.flipSound();
-          player.chirp();
+
+          bsocket.tellPhone(SocketThread.START);
+          fsaver.startNewFile();
           tap.openTap();
+          try { Thread.sleep(500); } catch (Exception e) {}
+          player.chirp();
+
           try { Thread.sleep(2000); } catch (Exception e) {}
-          player.stopChirp();
+          bsocket.tellPhone(SocketThread.STOP);
+          try { Thread.sleep(500); } catch (Exception e) {}
+
           tap.closeTap();
-          //player.flipSound();
+          String filename = fsaver.closeFile();
+          player.stopChirp();
+          bsocket.sendFile(filename);
+
       }
     };
 
@@ -240,22 +253,6 @@ public class MainActivity extends Activity {
         });
     }
 
-
-    public void driftDetect () {
-        new Thread (new Runnable () {
-            @Override
-            public void run () {
-                try { Thread.sleep(1000); } catch (Exception e) {}
-                player.chirp();
-                tap.openTap();
-                try { Thread.sleep(10000); } catch (Exception e) {}
-                player.stopChirp();
-                tap.closeTap();
-            }
-        }); //.start();
-    }
-
-
     View.OnClickListener chirpStreamListener = new View.OnClickListener() {
 
         @Override
@@ -264,11 +261,16 @@ public class MainActivity extends Activity {
                 (new Thread(chirpStreamRunnerShort)).start();
             } else {
                 if (player.isSoundOn()) {
-                    player.stopChirp();
+                    bsocket.tellPhone(SocketThread.STOP);
                     tap.closeTap();
+                    player.stopChirp();
+                    String filename = fsaver.closeFile();
+                    bsocket.sendFile(filename);
                 } else {
-                    player.chirp();
+                    bsocket.tellPhone(SocketThread.START);
+                    fsaver.startNewFile();
                     tap.openTap();
+                    player.chirp();
                 }
             }
         }
