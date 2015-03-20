@@ -83,7 +83,7 @@ class SocketThread  {
                             myactivity.player.stopChirp();
                         }
                         else if (command == START_NORMAL) {
-                            myactivity.player.changeSound(Player.WN);
+                            myactivity.player.changeSound(Player.CHIRP);
                             myactivity.player.setSoftwareVolume(0.4);
                             myactivity.driftDetect();
                         }
