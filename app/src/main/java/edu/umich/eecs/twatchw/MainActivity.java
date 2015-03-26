@@ -230,6 +230,19 @@ public class MainActivity extends Activity {
       }
     };
 
+    Runnable chirpStreamRunnerLong = new Runnable () {
+        @Override
+        public void run () {
+            //player.flipSound();
+            player.chirp();
+            tap.openTap();
+            try { Thread.sleep(6000); } catch (Exception e) {}
+            player.stopChirp();
+            tap.closeTap();
+            //player.flipSound();
+        }
+    };
+
     public void say (final String message) {
         runOnUiThread(new Runnable() {
             @Override
@@ -262,13 +275,17 @@ public class MainActivity extends Activity {
             if (v.getId() == R.id.tap) {
                 (new Thread(chirpStreamRunnerShort)).start();
             } else {
+
+                (new Thread(chirpStreamRunnerLong)).start();
+
+                /*
                 if (player.isSoundOn()) {
                     player.stopChirp();
                     tap.closeTap();
                 } else {
                     player.chirp();
                     tap.openTap();
-                }
+                }*/
             }
         }
     };
