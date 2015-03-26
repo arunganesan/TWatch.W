@@ -80,7 +80,7 @@ public class MainActivity extends Activity {
 
         // Defaults
         player.setSoftwareVolume(0.4);
-        player.setSpace((int)(0.1*44100));
+        player.setSpace((int)(0.05*44100));
         player.startPlaying();
 
         // AGC Test
