@@ -83,7 +83,7 @@ public class MainActivity extends Activity {
 
 
         // Defaults
-        player.setSoftwareVolume(0.4);
+        player.setSoftwareVolume(0.0); // XXX CHANGE
         player.setSpace((int)(0.1*44100));
         player.startPlaying();
 
@@ -237,6 +237,8 @@ public class MainActivity extends Activity {
           try { Thread.sleep(500); } catch (Exception e) {}
 
           tap.closeTap();
+          tap.emptyBuffer();
+
           String filename = fsaver.closeFile();
           player.stopChirp();
           bsocket.sendFile(filename);

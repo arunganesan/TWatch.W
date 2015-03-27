@@ -83,28 +83,45 @@ class SocketThread  {
     }
 
     public void sendFile (final String filename) {
+
+
         new Thread (new Runnable () {
             @Override
             public void run () {
+                Log.v(TAG, "Sending file");
                 byte[] data = new byte[4096];
                 FileInputStream in = null;
                 int read = 0;
+                int total_sent = 0;
+
                 try {
                     in = new FileInputStream(filename);
                     long totalAudioLen = in.getChannel().size();
 
                     boolean error = false;
-                    mmOutStream.write(STARTFILE);
-                    mmOutStream.write(longToBytes(totalAudioLen));
+                    byte [] startfilecommand = new byte [9];
+                    startfilecommand[0] = STARTFILE;
+                    byte [] filesize = longToBytes(totalAudioLen);
+                    for (int i = 0; i < filesize.length; i++) startfilecommand[i+1] = filesize[i];
+                    Log.v(TAG, "Sending file of length: " + totalAudioLen);
+                    mmOutStream.write(startfilecommand);
+                    total_sent = 0;
 
                     while (!error) {
                         read = in.read(data);
                         error = (read == -1);
                         if (error) {
-                            Log.e(TAG, "Encountered error in file send");
+                            Log.e(TAG, "Reached end of file");
                             break;
                         }
+
                         mmOutStream.write(data, 0, read);
+                        total_sent += read;
+                        //Log.v(TAG, "Total sent " + total_sent + " and remaining " + (totalAudioLen - total_sent));
+                        if (totalAudioLen == total_sent) {
+                            Log.v(TAG, "Done sending file! :D");
+                            break;
+                        }
                     }
                 } catch (Exception e) {}
             }
@@ -135,7 +152,7 @@ class SocketThread  {
                         }
                         else if (command == START_NORMAL) {
                             myactivity.player.changeSound(Player.WN);
-                            myactivity.player.setSoftwareVolume(0.4);
+                            myactivity.player.setSoftwareVolume(0.0); // XXX: CHANGE
                         }
                         else if (command == DO_TAP) myactivity.single.callOnClick();
                         else if (command == DO_DRAW) myactivity.draw.callOnClick();

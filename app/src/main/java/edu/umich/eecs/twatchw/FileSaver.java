@@ -63,6 +63,7 @@ public class FileSaver extends Thread {
     public String closeFile () {
         try {
             watch_tmp.close();
+            Log.v(TAG, "Closed filed");
         } catch (Exception e) {}
         return AUDIO_RECORDER_WATCH_TMP;
     }
@@ -71,6 +72,7 @@ public class FileSaver extends Thread {
     public void startNewFile () {
         File tmpWatch = new File(AUDIO_RECORDER_WATCH_TMP);
         if (tmpWatch.exists()) tmpWatch.delete();
+        Log.v(TAG, "Starting new file");
         try {
            watch_tmp = new FileOutputStream(tmpWatch);
         } catch (FileNotFoundException e) { }
