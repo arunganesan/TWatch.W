@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,6 +22,8 @@ public class MainActivity extends Activity {
     ImageView bt, single, draw;
     FrameLayout parentView;
     enum Mode {CONNECTION, SINGLE, DRAW}
+    String TAG = "Main";
+
 
     SocketThread bsocket;
     BluetoothAdapter mBluetoothAdapter;
@@ -229,10 +232,14 @@ public class MainActivity extends Activity {
           bsocket.tellPhone(SocketThread.START);
           fsaver.startNewFile();
           tap.openTap();
+
           try { Thread.sleep(500); } catch (Exception e) {}
           player.chirp();
 
-          try { Thread.sleep(2000); } catch (Exception e) {}
+          try { Thread.sleep(2000); } catch (Exception e) {
+              Log.e(TAG, "Couldn't sleep.");
+          }
+
           bsocket.tellPhone(SocketThread.STOP);
           try { Thread.sleep(500); } catch (Exception e) {}
 

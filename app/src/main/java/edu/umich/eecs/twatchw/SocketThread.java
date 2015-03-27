@@ -88,7 +88,6 @@ class SocketThread  {
         new Thread (new Runnable () {
             @Override
             public void run () {
-                Log.v(TAG, "Sending file");
                 byte[] data = new byte[4096];
                 FileInputStream in = null;
                 int read = 0;
@@ -105,6 +104,8 @@ class SocketThread  {
                     for (int i = 0; i < filesize.length; i++) startfilecommand[i+1] = filesize[i];
                     Log.v(TAG, "Sending file of length: " + totalAudioLen);
                     mmOutStream.write(startfilecommand);
+                    mmOutStream.flush();
+
                     total_sent = 0;
 
                     while (!error) {
