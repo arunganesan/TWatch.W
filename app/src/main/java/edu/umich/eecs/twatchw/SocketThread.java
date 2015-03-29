@@ -108,6 +108,11 @@ class SocketThread  {
                     mmOutStream.write(startfilecommand);
                     mmOutStream.flush();
 
+                    try {
+                        Thread.currentThread().sleep(150);
+                    } catch (Exception e) {
+                    }
+
                     total_sent = 0;
 
                     while (!error) {
@@ -119,6 +124,7 @@ class SocketThread  {
                         }
 
                         mmOutStream.write(data, 0, read);
+
                         total_sent += read;
                         myactivity.addInfo("Sending file - " + total_sent + "/" + totalAudioLen, 0);
                         //Log.v(TAG, "Total sent " + total_sent + " and remaining " + (totalAudioLen - total_sent));
