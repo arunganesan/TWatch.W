@@ -103,6 +103,8 @@ class SocketThread  {
                     byte [] filesize = longToBytes(totalAudioLen);
                     for (int i = 0; i < filesize.length; i++) startfilecommand[i+1] = filesize[i];
                     Log.v(TAG, "Sending file of length: " + totalAudioLen);
+
+
                     mmOutStream.write(startfilecommand);
                     mmOutStream.flush();
 
@@ -118,13 +120,17 @@ class SocketThread  {
 
                         mmOutStream.write(data, 0, read);
                         total_sent += read;
+                        myactivity.addInfo("Sending file - " + total_sent + "/" + totalAudioLen, 0);
                         //Log.v(TAG, "Total sent " + total_sent + " and remaining " + (totalAudioLen - total_sent));
                         if (totalAudioLen == total_sent) {
+                            myactivity.addInfo("Done sending file! :D", 250);
                             Log.v(TAG, "Done sending file! :D");
                             break;
                         }
                     }
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                    myactivity.addInfo("Error from sending loop", 0);
+                }
             }
         }).start();
 
@@ -153,7 +159,7 @@ class SocketThread  {
                         }
                         else if (command == START_NORMAL) {
                             myactivity.player.changeSound(Player.WN);
-                            myactivity.player.setSoftwareVolume(0.0); // XXX: CHANGE
+                            myactivity.player.setSoftwareVolume(0.1); // XXX: CHANGE
                         }
                         else if (command == DO_TAP) myactivity.single.callOnClick();
                         else if (command == DO_DRAW) myactivity.draw.callOnClick();
@@ -166,37 +172,6 @@ class SocketThread  {
     };
 
 
-    Runnable writer = new Runnable () {
-        public void run() {
-            Log.v(TAG, "Running writer in thread: " + Thread.currentThread().getName());
-
-            while (true) {
-                try {
-                    if (tap.howMany() != 0) {
-                        int len = tap.getSome(sendBuffer, sendBuffer.length);
-                        Log.v(TAG, "Sending " + len + " samples");
-                        long start = System.currentTimeMillis();
-                        mmOutStream.write(sendBuffer, 0, len);
-                        long end = System.currentTimeMillis();
-
-                        Log.v(TAG, "Bluetooth took " + (end - start) + "ms to send " + len + " values.");
-                        //Log.v(TAG, "Writing unblocked");
-                    } else {
-                        if (tap.howMany() == 0 && tap.isTapOpen() == false) tap.emptyBuffer();
-                        //Log.v(TAG, "Writing nothing, sleeping.");
-                        //Thread.sleep(500);
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "Got exception - " + e.getLocalizedMessage());
-                    break;
-                }
-                // This needs to happen very fast
-                // But we need to be careful that its not killing the CPU... right now its literally busy cycling
-            }
-
-            Log.e(TAG, "Exiting writer thread for some reason");
-        }
-    };
 
     public void tellPhone (byte COMMAND) {
         // The input loop above might be locked on the inputstream.read

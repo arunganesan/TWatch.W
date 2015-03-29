@@ -1,5 +1,11 @@
 package edu.umich.eecs.twatchw;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+
+
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
@@ -11,6 +17,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+
+import android.widget.TextView;
+
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -19,9 +28,10 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
     SharedPreferences sp;
+    String nextMessage;
     ImageView bt, single, draw;
     FrameLayout parentView;
-    enum Mode {CONNECTION, SINGLE, DRAW}
+    enum Mode {CONNECTION, SINGLE, DRAW, TEXT}
     String TAG = "Main";
 
 
@@ -33,6 +43,8 @@ public class MainActivity extends Activity {
     Recorder recorder;
     MainActivity mainActivity;
     FileSaver fsaver;
+
+    TextView statusText;
 
 
     //String TAG = "MainActivity";
@@ -104,6 +116,8 @@ public class MainActivity extends Activity {
         single.setOnClickListener(chirpStreamListener);
         draw.setOnClickListener(chirpStreamListener);
         parentView = (FrameLayout)findViewById(R.id.parentView);
+
+        statusText = (TextView)findViewById(R.id.statusText);
     }
 
     @Override
@@ -134,6 +148,7 @@ public class MainActivity extends Activity {
         if (mode == Mode.CONNECTION) parentView.addView(bt);
         if (mode == Mode.SINGLE) parentView.addView(single);
         if (mode == Mode.DRAW) parentView.addView(draw);
+        if (mode == Mode.TEXT) parentView.addView(statusText);
     }
 
     @Override
@@ -204,7 +219,7 @@ public class MainActivity extends Activity {
         sp.edit().putString("phone address", socket.getRemoteDevice().getAddress()).commit();
         bsocket = new SocketThread(socket, this, tap);
         bsocket.start();
-        setMode(Mode.SINGLE);
+        setMode(Mode.TEXT);
     }
 
     void setupBluetooth () {
@@ -280,9 +295,33 @@ public class MainActivity extends Activity {
                     fsaver.startNewFile();
                     tap.openTap();
                     player.chirp();
+                    addInfo("Beeping...", 250 );
                 }
             }
         }
     };
+
+
+    public void addInfo (final String message, final int time) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ValueAnimator fadeAnim = ObjectAnimator.ofFloat(statusText, "alpha", 1f, 0f);
+                fadeAnim.setDuration(time);
+                fadeAnim.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        statusText.setText(nextMessage);
+                        ValueAnimator fadeAnim = ObjectAnimator.ofFloat(statusText, "alpha", 0f, 1f);
+                        fadeAnim.setDuration(time);
+                        fadeAnim.start();
+                    }
+                });
+                fadeAnim.start();
+                nextMessage = message;
+            }
+        });
+    }
+
 
 }
