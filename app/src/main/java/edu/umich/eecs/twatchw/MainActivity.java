@@ -239,6 +239,16 @@ public class MainActivity extends Activity {
         new BluetoothServer(mBluetoothAdapter, this).start();
     }
 
+    public void setSpeed (String mode) {
+        if (mode.equals("slow")) {
+            player.autotuneSound = Player.LONGCHIRPFORWARD;
+            player.beepbeepSound = Player.LONGCHIRP;
+        } else {
+            player.autotuneSound = Player.SHORTCHIRPFORWARD;
+            player.beepbeepSound = Player.SHORTCHIRP;
+        }
+    }
+
     Runnable chirpStreamRunnerShort = new Runnable () {
       @Override
       public void run () {
