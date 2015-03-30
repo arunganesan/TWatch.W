@@ -1,5 +1,11 @@
 package edu.umich.eecs.twatchw;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+
+
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
@@ -7,9 +13,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+
+import android.widget.TextView;
+
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -18,9 +28,12 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
     SharedPreferences sp;
+    String nextMessage;
     ImageView bt, single, draw;
     FrameLayout parentView;
-    enum Mode {CONNECTION, SINGLE, DRAW}
+    enum Mode {CONNECTION, SINGLE, DRAW, TEXT}
+    String TAG = "Main";
+
 
     SocketThread bsocket;
     BluetoothAdapter mBluetoothAdapter;
@@ -29,6 +42,9 @@ public class MainActivity extends Activity {
     TapBuffer tap;
     Recorder recorder;
     MainActivity mainActivity;
+    FileSaver fsaver;
+
+    TextView statusText;
 
 
     //String TAG = "MainActivity";
@@ -77,10 +93,13 @@ public class MainActivity extends Activity {
         recorder = new Recorder(this, tap);
         recorder.startRecording();
         player.turnOffSound(true);
+        fsaver = new FileSaver(this, tap);
+        fsaver.start();
+
 
         // Defaults
         player.setSoftwareVolume(0.4);
-        player.setSpace((int)(0.1*44100));
+        player.setSpace((int)(0.05*44100));
         player.startPlaying();
 
         // AGC Test
@@ -97,6 +116,8 @@ public class MainActivity extends Activity {
         single.setOnClickListener(chirpStreamListener);
         draw.setOnClickListener(chirpStreamListener);
         parentView = (FrameLayout)findViewById(R.id.parentView);
+
+        statusText = (TextView)findViewById(R.id.statusText);
     }
 
     @Override
@@ -127,6 +148,7 @@ public class MainActivity extends Activity {
         if (mode == Mode.CONNECTION) parentView.addView(bt);
         if (mode == Mode.SINGLE) parentView.addView(single);
         if (mode == Mode.DRAW) parentView.addView(draw);
+        if (mode == Mode.TEXT) parentView.addView(statusText);
     }
 
     @Override
@@ -196,7 +218,7 @@ public class MainActivity extends Activity {
         sp.edit().putString("phone address", socket.getRemoteDevice().getAddress()).commit();
         bsocket = new SocketThread(socket, this, tap);
         bsocket.start();
-        setMode(Mode.SINGLE);
+        setMode(Mode.TEXT);
     }
 
     void setupBluetooth () {
@@ -217,30 +239,42 @@ public class MainActivity extends Activity {
         new BluetoothServer(mBluetoothAdapter, this).start();
     }
 
+    public void setSpeed (String mode) {
+        if (mode.equals("slow")) {
+            player.autotuneSound = Player.LONGCHIRPFORWARD;
+            player.beepbeepSound = Player.LONGCHIRP;
+        } else {
+            player.autotuneSound = Player.SHORTCHIRPFORWARD;
+            player.beepbeepSound = Player.SHORTCHIRP;
+        }
+    }
+
     Runnable chirpStreamRunnerShort = new Runnable () {
       @Override
       public void run () {
-          //player.flipSound();
-          player.chirp();
-          tap.openTap();
-          try { Thread.sleep(2000); } catch (Exception e) {}
-          player.stopChirp();
-          tap.closeTap();
-          //player.flipSound();
-      }
-    };
 
-    Runnable chirpStreamRunnerLong = new Runnable () {
-        @Override
-        public void run () {
-            //player.flipSound();
-            player.chirp();
-            tap.openTap();
-            try { Thread.sleep(6000); } catch (Exception e) {}
-            player.stopChirp();
-            tap.closeTap();
-            //player.flipSound();
-        }
+          bsocket.tellPhone(SocketThread.START);
+          fsaver.startNewFile();
+          tap.openTap();
+
+          try { Thread.sleep(500); } catch (Exception e) {}
+          player.chirp();
+
+          try { Thread.sleep(2000); } catch (Exception e) {
+              Log.e(TAG, "Couldn't sleep.");
+          }
+
+          bsocket.tellPhone(SocketThread.STOP);
+          try { Thread.sleep(500); } catch (Exception e) {}
+
+          tap.closeTap();
+          tap.emptyBuffer();
+
+          String filename = fsaver.closeFile();
+          player.stopChirp();
+          bsocket.sendFile(filename);
+
+      }
     };
 
     public void say (final String message) {
@@ -252,22 +286,6 @@ public class MainActivity extends Activity {
         });
     }
 
-
-    public void driftDetect () {
-        new Thread (new Runnable () {
-            @Override
-            public void run () {
-                try { Thread.sleep(1000); } catch (Exception e) {}
-                player.chirp();
-                tap.openTap();
-                try { Thread.sleep(10000); } catch (Exception e) {}
-                player.stopChirp();
-                tap.closeTap();
-            }
-        }); //.start();
-    }
-
-
     View.OnClickListener chirpStreamListener = new View.OnClickListener() {
 
         @Override
@@ -275,19 +293,44 @@ public class MainActivity extends Activity {
             if (v.getId() == R.id.tap) {
                 (new Thread(chirpStreamRunnerShort)).start();
             } else {
-
-                (new Thread(chirpStreamRunnerLong)).start();
-
-                /*
                 if (player.isSoundOn()) {
-                    player.stopChirp();
+                    bsocket.tellPhone(SocketThread.STOP);
                     tap.closeTap();
+                    player.stopChirp();
+                    String filename = fsaver.closeFile();
+                    bsocket.sendFile(filename);
                 } else {
-                    player.chirp();
+                    bsocket.tellPhone(SocketThread.START);
+                    fsaver.startNewFile();
                     tap.openTap();
-                }*/
+                    player.chirp();
+                    addInfo("Beeping...", 250 );
+                }
             }
         }
     };
+
+
+    public void addInfo (final String message, final int time) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ValueAnimator fadeAnim = ObjectAnimator.ofFloat(statusText, "alpha", 1f, 0f);
+                fadeAnim.setDuration(time);
+                fadeAnim.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        statusText.setText(nextMessage);
+                        ValueAnimator fadeAnim = ObjectAnimator.ofFloat(statusText, "alpha", 0f, 1f);
+                        fadeAnim.setDuration(time);
+                        fadeAnim.start();
+                    }
+                });
+                fadeAnim.start();
+                nextMessage = message;
+            }
+        });
+    }
+
 
 }
