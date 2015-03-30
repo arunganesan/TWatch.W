@@ -164,8 +164,8 @@ class SocketThread  {
                             myactivity.player.stopChirp();
                         }
                         else if (command == START_NORMAL) {
-                            myactivity.player.changeSound(Player.WN);
-                            myactivity.player.setSoftwareVolume(0.1); // XXX: CHANGE
+                            myactivity.player.changeSound(Player.CHIRP);
+                            myactivity.player.setSoftwareVolume(0.4);
                         }
                         else if (command == DO_TAP) myactivity.single.callOnClick();
                         else if (command == DO_DRAW) myactivity.draw.callOnClick();
