@@ -243,10 +243,14 @@ public class MainActivity extends Activity {
         if (mode.equals("slow")) {
             player.autotuneSound = Player.LONGCHIRPFORWARD;
             player.beepbeepSound = Player.LONGCHIRP;
+            player.setSpace((int)(0.1*44100));
         } else {
             player.autotuneSound = Player.SHORTCHIRPFORWARD;
             player.beepbeepSound = Player.SHORTCHIRP;
+            player.setSpace((int)(0.05*44100));
         }
+
+        say("Switch to mode - " + mode);
     }
 
     Runnable chirpStreamRunnerShort = new Runnable () {
