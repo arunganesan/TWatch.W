@@ -97,6 +97,11 @@ public class MainActivity extends Activity {
         fsaver.start();
 
 
+        player.autotuneSound = Player.SHORTCHIRPFORWARD;
+        player.beepbeepSound = Player.SHORTCHIRP;
+        player.setSpace((int)(0.05*44100));
+
+
         // Defaults
         player.setSoftwareVolume(0.4);
         player.setSpace((int)(0.05*44100));
@@ -158,6 +163,9 @@ public class MainActivity extends Activity {
         masterShutdown();
     }
 
+    public void setSound (final short [] sound) {
+        player.beepbeepSound = sound;
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -195,14 +203,6 @@ public class MainActivity extends Activity {
                 if (parentView.findViewById(single.getId()) != null) setMode(Mode.DRAW);
                 else setMode(Mode.SINGLE);
                 break;
-            case R.id.volumeLowest: player.setSoftwareVolume(0.2); break;
-            case R.id.volumeLow: player.setSoftwareVolume(0.4); break;
-            case R.id.volumeMedium: player.setSoftwareVolume(0.6); break;
-            case R.id.volumeHigh: player.setSoftwareVolume(0.8); break;
-            case R.id.volumeHighest: player.setSoftwareVolume(1); break;
-            case R.id.volumeSilence: player.setSoftwareVolume(0); break;
-            //case R.id.highChirpSound: player.changeSound(Player.CHIRPHIGH); break;
-            //case R.id.highWhitenoiseSound: player.changeSound(Player.WNHIGH); break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -239,47 +239,8 @@ public class MainActivity extends Activity {
         new BluetoothServer(mBluetoothAdapter, this).start();
     }
 
-    public void setSpeed (String mode) {
-        if (mode.equals("slow")) {
-            player.autotuneSound = Player.LONGCHIRPFORWARD;
-            player.beepbeepSound = Player.LONGCHIRP;
-            player.setSpace((int)(0.1*44100));
-        } else {
-            player.autotuneSound = Player.SHORTCHIRPFORWARD;
-            player.beepbeepSound = Player.SHORTCHIRP;
-            player.setSpace((int)(0.05*44100));
-        }
 
-        say("Switch to mode - " + mode);
-    }
 
-    Runnable chirpStreamRunnerShort = new Runnable () {
-      @Override
-      public void run () {
-
-          bsocket.tellPhone(SocketThread.START);
-          fsaver.startNewFile();
-          tap.openTap();
-
-          try { Thread.sleep(500); } catch (Exception e) {}
-          player.chirp();
-
-          try { Thread.sleep(2000); } catch (Exception e) {
-              Log.e(TAG, "Couldn't sleep.");
-          }
-
-          bsocket.tellPhone(SocketThread.STOP);
-          try { Thread.sleep(500); } catch (Exception e) {}
-
-          tap.closeTap();
-          tap.emptyBuffer();
-
-          String filename = fsaver.closeFile();
-          player.stopChirp();
-          bsocket.sendFile(filename);
-
-      }
-    };
 
     public void say (final String message) {
         runOnUiThread(new Runnable() {
@@ -294,22 +255,26 @@ public class MainActivity extends Activity {
 
         @Override
         public void onClick(View v) {
-            if (v.getId() == R.id.tap) {
-                (new Thread(chirpStreamRunnerShort)).start();
+            if (player.isSoundOn()) {
+                bsocket.tellPhone(SocketThread.STOP);
+                tap.closeTap();
+                player.stopChirp();
+                String filename = fsaver.closeFile();
+                bsocket.sendFile(filename);
             } else {
-                if (player.isSoundOn()) {
-                    bsocket.tellPhone(SocketThread.STOP);
-                    tap.closeTap();
-                    player.stopChirp();
-                    String filename = fsaver.closeFile();
-                    bsocket.sendFile(filename);
-                } else {
-                    bsocket.tellPhone(SocketThread.START);
-                    fsaver.startNewFile();
-                    tap.openTap();
-                    player.chirp();
-                    addInfo("Beeping...", 250 );
-                }
+                bsocket.tellPhone(SocketThread.START);
+                fsaver.startNewFile();
+                tap.openTap();
+
+                new Thread() {
+                    @Override
+                    public void run () {
+                        player.chirpPlayCount = 0;
+                        try { Thread.sleep(2000); } catch (Exception e) {}
+                        player.chirp();
+                        addInfo("Beeping...", 250 );
+                    }
+                }.start();
             }
         }
     };

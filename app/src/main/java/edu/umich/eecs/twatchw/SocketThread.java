@@ -34,6 +34,17 @@ class SocketThread  {
     public static byte FASTMODE = 9;
     public static byte SLOWMODE = 10;
 
+    public static byte SILENCE = 11;
+    public static byte UNSILENCE = 12;
+    public static byte PLAY100 = 13;
+    public static byte PLAYCONT = 14;
+
+    public static byte SOUND_CHIRP = 15;
+    public static byte SOUND_WN = 16;
+    public static byte SOUND_HIGHCHIRP = 17;
+    public static byte SOUND_CHIRPHANN = 18;
+
+
     private byte [] sendBuffer = new byte [44100];
 
     public SocketThread(BluetoothSocket socket, MainActivity myactivity, TapBuffer  tap) {
@@ -172,8 +183,13 @@ class SocketThread  {
                         }
                         else if (command == DO_TAP) myactivity.single.callOnClick();
                         else if (command == DO_DRAW) myactivity.draw.callOnClick();
-                        else if (command == FASTMODE) myactivity.setSpeed("fast");
-                        else if (command == SLOWMODE) myactivity.setSpeed("slow");
+                        else if (command == SILENCE) myactivity.player.setSoftwareVolume(0.0);
+                        else if (command == UNSILENCE) myactivity.player.setSoftwareVolume(0.4);
+
+                        else if (command == PLAY100) myactivity.player.countMode = true;
+                        else if (command == PLAYCONT) myactivity.player.countMode = false;
+                        //else if (command == FASTMODE) myactivity.setSpeed("fast");
+                        //else if (command == SLOWMODE) myactivity.setSpeed("slow");
                     }
                 } catch (IOException e) {
                     break;
