@@ -163,10 +163,6 @@ public class MainActivity extends Activity {
         masterShutdown();
     }
 
-    public void setSound (final short [] sound) {
-        player.beepbeepSound = sound;
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will

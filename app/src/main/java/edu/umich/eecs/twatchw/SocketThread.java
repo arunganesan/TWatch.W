@@ -192,10 +192,10 @@ class SocketThread  {
                         else if (command == PLAY100) myactivity.player.countMode = true;
                         else if (command == PLAYCONT) myactivity.player.countMode = false;
 
-                        else if (command == SOUND_CHIRP) myactivity.setSound(Player.SHORTCHIRP);
-                        else if (command == SOUND_CHIRPHANN) myactivity.setSound(Player.CHIRPHANN);
-                        else if (command == SOUND_HIGHCHIRP) myactivity.setSound(Player.HIGHCHIRP);
-                        else if (command == SOUND_WN) myactivity.setSound(Player.WHITENOISE);
+                        else if (command == SOUND_CHIRP) myactivity.player.changeSound(Player.SHORTCHIRP);
+                        else if (command == SOUND_CHIRPHANN) myactivity.player.changeSound(Player.CHIRPHANN);
+                        else if (command == SOUND_HIGHCHIRP) myactivity.player.changeSound(Player.HIGHCHIRP);
+                        else if (command == SOUND_WN) myactivity.player.changeSound(Player.WHITENOISE);
                     }
                 } catch (IOException e) {
                     break;
