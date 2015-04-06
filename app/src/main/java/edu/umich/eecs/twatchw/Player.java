@@ -28,9 +28,9 @@ public class Player {
     boolean isRunning = false, silenceOverride = false;
     int MAXCHIRPS = 100;
     MainActivity myActivity;
-
-    int chirpPlayCount = 0;
-    boolean countMode = false;
+    boolean maxPlayOverride = false;
+    public int chirpPlayCount = 0;
+    public boolean countMode = false;
     boolean scheduleTurnOn = false;
 
     int SPACE;
@@ -58,8 +58,10 @@ public class Player {
         silenceOverride = value;
     }
     public void chirp () {
-        scheduleTurnOn = false;
+        maxPlayOverride = false;
+        scheduleTurnOn = true;
     }
+
     public void stopChirp () { silenceOverride = true; }
     public boolean isSoundOn () { return !silenceOverride; }
     public void setSoftwareVolume (double softwareVolume) {
@@ -97,7 +99,8 @@ public class Player {
 
     public void playLoop() {
         short samples [] = new short[buffsize];
-        int chirpCount = 0, chirpPlayCount = 0;
+        int chirpCount = 0;
+        chirpPlayCount = 0;
         boolean inChirp = true; short sample;
 
         while (isRunning) {
@@ -105,12 +108,16 @@ public class Player {
             for (int i = 0; i < buffsize; i++) {
                 if (inChirp) {
                     if (silenceOverride) samples[i] = 0;
+                    else if (maxPlayOverride) samples[i] = 0;
                     else samples[i] = sound[chirpCount];
 
                     chirpCount++; // Always increment, so it stays in sync
 
                     if (chirpCount >= sound.length) { // The last one, next would overflow
-                        chirpPlayCount ++;
+                        if (silenceOverride == false && maxPlayOverride == false) {
+                            chirpPlayCount++;
+                            Log.v(TAG, "Played " + chirpPlayCount);
+                        }
                         inChirp = false;
                         chirpCount = 0;
                     }
@@ -125,8 +132,9 @@ public class Player {
                             scheduleTurnOn = false;
                         }
 
-                        if (countMode && chirpPlayCount >= MAXCHIRPS)
-                            silenceOverride = true;
+                        if (countMode && chirpPlayCount >= MAXCHIRPS) {
+                            maxPlayOverride = true;
+                        }
 
                         spaceCounter = SPACE;
                     }

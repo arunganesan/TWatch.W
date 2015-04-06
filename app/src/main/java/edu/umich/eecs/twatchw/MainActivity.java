@@ -256,6 +256,8 @@ public class MainActivity extends Activity {
         @Override
         public void onClick(View v) {
             if (player.isSoundOn()) {
+                addInfo("Turning off sound", 0);
+
                 bsocket.tellPhone(SocketThread.STOP);
                 tap.closeTap();
                 player.stopChirp();

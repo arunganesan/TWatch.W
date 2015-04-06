@@ -182,7 +182,10 @@ class SocketThread  {
                             myactivity.player.setSoftwareVolume(0.4);
                         }
                         else if (command == DO_TAP) myactivity.single.callOnClick();
-                        else if (command == DO_DRAW) myactivity.draw.callOnClick();
+                        else if (command == DO_DRAW) {
+                            myactivity.draw.callOnClick();
+                            Log.v(TAG, "Got draw command");
+                        }
                         else if (command == SILENCE) myactivity.player.setSoftwareVolume(0.0);
                         else if (command == UNSILENCE) myactivity.player.setSoftwareVolume(0.4);
 
