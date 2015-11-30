@@ -27,6 +27,8 @@ import android.widget.Toast;
 
 
 public class MainActivity extends Activity {
+    final String PCADDRESS = "5C:F3:70:67:32:F5";
+
     SharedPreferences sp;
     String nextMessage;
     ImageView bt, single, draw;
@@ -35,14 +37,17 @@ public class MainActivity extends Activity {
     String TAG = "Main";
 
 
-    SocketThread bsocket;
+    PhoneSocketThread bsocket;
+    PCSocketThread pcSocket;
     BluetoothAdapter mBluetoothAdapter;
 
     Player player;
     TapBuffer tap;
     Recorder recorder;
     MainActivity mainActivity;
-    FileSaver fsaver;
+    DataStreamer fsaver;
+
+    BluetoothSocket phone_socket, pc_socket;
 
     TextView statusText;
 
@@ -75,7 +80,7 @@ public class MainActivity extends Activity {
 
         //fakeSetBTSocket();
         setupBluetooth();
-
+        //setupPCBluetooth();
 
         // To just chirp for auto tuning, we do:
         //player.chirp();
@@ -93,7 +98,7 @@ public class MainActivity extends Activity {
         recorder = new Recorder(this, tap);
         recorder.startRecording();
         player.turnOffSound(true);
-        fsaver = new FileSaver(this, tap);
+        fsaver = new DataStreamer(this, tap, pc_socket);
         fsaver.start();
 
 
@@ -141,6 +146,203 @@ public class MainActivity extends Activity {
         if (bsocket != null) bsocket.cancel();
         setMode(Mode.CONNECTION);
     }
+
+
+    public void fakeSetBTSocket () {
+        initializeTWatch();
+    }
+
+    /**
+     * Call back from the phone bluetooth socket
+     * @param socket
+     */
+    public void setBTSocket (BluetoothSocket socket) {
+        phone_socket = socket;
+        Log.v(TAG, "Received connection from " + socket.getRemoteDevice().getAddress());
+        setupPCBluetooth();
+    }
+
+
+    /**
+     * Callback function from
+     * @param socket
+     */
+    public void setPCSocket (BluetoothSocket socket) {
+        this.pc_socket = socket;
+
+        initializeTWatch();
+
+        bsocket = new PhoneSocketThread(phone_socket, this, tap);
+        bsocket.start();
+
+        pcSocket = new PCSocketThread(socket, this, tap);
+        pcSocket.start();
+
+        setMode(Mode.TEXT);
+    }
+
+    /**
+     * Connects to PC bluetooth in client mode.
+     * Gets a socket from the PC.
+     */
+    public void setupPCBluetooth () {
+        //setPCSocket(null);
+        //return;
+
+
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        int REQUEST_ENABLE_BT = 1;
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
+        new ConnectThread(PCADDRESS, mBluetoothAdapter, this).start();
+
+    }
+
+    void setupBluetooth () {
+        setMode(Mode.CONNECTION);
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        int REQUEST_ENABLE_BT = 1;
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
+        if (!sp.contains("phone address")) {
+            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            startActivity(discoverableIntent);
+        }
+
+        new BluetoothServer(mBluetoothAdapter, this).start();
+    }
+
+
+    public void setSpeed (String mode) {
+        if (mode.equals("slow")) {
+            player.autotuneSound = Player.LONGCHIRPFORWARD;
+            player.beepbeepSound = Player.LONGCHIRP;
+            player.setSpace((int)(0.5*44100));
+        } else {
+            player.autotuneSound = Player.SHORTCHIRPFORWARD;
+            player.beepbeepSound = Player.SHORTCHIRP;
+            player.setSpace((int)(0.05*44100));
+        }
+
+        say("Switch to mode - " + mode);
+    }
+
+    Runnable chirpStreamRunnerShort = new Runnable () {
+      @Override
+      public void run () {
+
+          bsocket.tellPhone(PhoneSocketThread.START);
+          tap.openTap();
+
+          try { Thread.sleep(500); } catch (Exception e) {}
+          player.chirp();
+
+          try { Thread.sleep(2000); } catch (Exception e) {
+              Log.e(TAG, "Couldn't sleep.");
+          }
+
+          bsocket.tellPhone(PhoneSocketThread.STOP);
+          try { Thread.sleep(500); } catch (Exception e) {}
+
+          tap.closeTap();
+          tap.emptyBuffer();
+
+          player.stopChirp();
+          //pcSocket.sendFile(filename);
+
+      }
+    };
+
+    public void say (final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(mainActivity, message, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    View.OnClickListener chirpStreamListener = new View.OnClickListener() {
+
+        @Override
+        public void onClick(View v) {
+            if (v.getId() == R.id.tap) {
+                (new Thread(chirpStreamRunnerShort)).start();
+            } else {
+                if (player.isSoundOn()) {
+                    bsocket.tellPhone(PhoneSocketThread.STOP);
+                    tap.closeTap();
+                    player.stopChirp();
+                    //String filename = fsaver.closeFile();
+                    //pcSocket.sendFile(filename);
+                } else {
+                    bsocket.tellPhone(PhoneSocketThread.START);
+                    //fsaver.startNewFile();
+                    tap.openTap();
+                    player.chirp();
+                    addInfo("Beeping...", 250 );
+                }
+            }
+        }
+    };
+
+
+    public void addInfo (final String message, final int time) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ValueAnimator fadeAnim = ObjectAnimator.ofFloat(statusText, "alpha", 1f, 0f);
+                fadeAnim.setDuration(time);
+                fadeAnim.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        statusText.setText(nextMessage);
+                        ValueAnimator fadeAnim = ObjectAnimator.ofFloat(statusText, "alpha", 0f, 1f);
+                        fadeAnim.setDuration(time);
+                        fadeAnim.start();
+                    }
+                });
+                fadeAnim.start();
+                nextMessage = message;
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void setMode (Mode mode) {
         //if (mode == C)
@@ -206,134 +408,6 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    public void fakeSetBTSocket () {
-        initializeTWatch();
-    }
-
-    public void setBTSocket (BluetoothSocket socket) {
-        initializeTWatch();
-
-        sp.edit().putString("phone address", socket.getRemoteDevice().getAddress()).commit();
-        bsocket = new SocketThread(socket, this, tap);
-        bsocket.start();
-        setMode(Mode.TEXT);
-    }
-
-    void setupBluetooth () {
-        setMode(Mode.CONNECTION);
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        int REQUEST_ENABLE_BT = 1;
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
-
-        if (!sp.contains("phone address")) {
-            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-            startActivity(discoverableIntent);
-        }
-
-        new BluetoothServer(mBluetoothAdapter, this).start();
-    }
-
-    public void setSpeed (String mode) {
-        if (mode.equals("slow")) {
-            player.autotuneSound = Player.LONGCHIRPFORWARD;
-            player.beepbeepSound = Player.LONGCHIRP;
-            player.setSpace((int)(0.5*44100));
-        } else {
-            player.autotuneSound = Player.SHORTCHIRPFORWARD;
-            player.beepbeepSound = Player.SHORTCHIRP;
-            player.setSpace((int)(0.05*44100));
-        }
-
-        say("Switch to mode - " + mode);
-    }
-
-    Runnable chirpStreamRunnerShort = new Runnable () {
-      @Override
-      public void run () {
-
-          bsocket.tellPhone(SocketThread.START);
-          fsaver.startNewFile();
-          tap.openTap();
-
-          try { Thread.sleep(500); } catch (Exception e) {}
-          player.chirp();
-
-          try { Thread.sleep(2000); } catch (Exception e) {
-              Log.e(TAG, "Couldn't sleep.");
-          }
-
-          bsocket.tellPhone(SocketThread.STOP);
-          try { Thread.sleep(500); } catch (Exception e) {}
-
-          tap.closeTap();
-          tap.emptyBuffer();
-
-          String filename = fsaver.closeFile();
-          player.stopChirp();
-          bsocket.sendFile(filename);
-
-      }
-    };
-
-    public void say (final String message) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run () {
-                Toast.makeText(mainActivity, message, Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    View.OnClickListener chirpStreamListener = new View.OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            if (v.getId() == R.id.tap) {
-                (new Thread(chirpStreamRunnerShort)).start();
-            } else {
-                if (player.isSoundOn()) {
-                    bsocket.tellPhone(SocketThread.STOP);
-                    tap.closeTap();
-                    player.stopChirp();
-                    String filename = fsaver.closeFile();
-                    bsocket.sendFile(filename);
-                } else {
-                    bsocket.tellPhone(SocketThread.START);
-                    fsaver.startNewFile();
-                    tap.openTap();
-                    player.chirp();
-                    addInfo("Beeping...", 250 );
-                }
-            }
-        }
-    };
-
-
-    public void addInfo (final String message, final int time) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ValueAnimator fadeAnim = ObjectAnimator.ofFloat(statusText, "alpha", 1f, 0f);
-                fadeAnim.setDuration(time);
-                fadeAnim.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        statusText.setText(nextMessage);
-                        ValueAnimator fadeAnim = ObjectAnimator.ofFloat(statusText, "alpha", 0f, 1f);
-                        fadeAnim.setDuration(time);
-                        fadeAnim.start();
-                    }
-                });
-                fadeAnim.start();
-                nextMessage = message;
-            }
-        });
     }
 
 
