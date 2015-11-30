@@ -98,8 +98,8 @@ public class MainActivity extends Activity {
 
 
         // Defaults
-        player.setSoftwareVolume(0.4);
-        player.setSpace((int)(0.05*44100));
+        player.setSoftwareVolume(0.05);
+        player.setSpace((int)(0.5*44100));
         player.startPlaying();
 
         // AGC Test
@@ -243,7 +243,7 @@ public class MainActivity extends Activity {
         if (mode.equals("slow")) {
             player.autotuneSound = Player.LONGCHIRPFORWARD;
             player.beepbeepSound = Player.LONGCHIRP;
-            player.setSpace((int)(0.1*44100));
+            player.setSpace((int)(0.5*44100));
         } else {
             player.autotuneSound = Player.SHORTCHIRPFORWARD;
             player.beepbeepSound = Player.SHORTCHIRP;
