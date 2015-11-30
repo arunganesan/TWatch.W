@@ -38,7 +38,6 @@ public class MainActivity extends Activity {
 
 
     PhoneSocketThread bsocket;
-    PCSocketThread pcSocket;
     BluetoothAdapter mBluetoothAdapter;
 
     Player player;
@@ -175,9 +174,6 @@ public class MainActivity extends Activity {
         bsocket = new PhoneSocketThread(phone_socket, this, tap);
         bsocket.start();
 
-        pcSocket = new PCSocketThread(socket, this, tap);
-        pcSocket.start();
-
         setMode(Mode.TEXT);
     }
 
@@ -280,6 +276,7 @@ public class MainActivity extends Activity {
                     bsocket.tellPhone(PhoneSocketThread.STOP);
                     tap.closeTap();
                     player.stopChirp();
+                    addInfo("Ready.", 100);
                     //String filename = fsaver.closeFile();
                     //pcSocket.sendFile(filename);
                 } else {

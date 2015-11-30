@@ -59,7 +59,6 @@ class PCSocketThread {
 
     public void start () {
         Log.v(TAG, "Starting BT thread");
-        (new Thread(listener)).start();
         //(new Thread(writer)).start();
     }
 
@@ -81,116 +80,5 @@ class PCSocketThread {
         buffer.put(bytes);
         buffer.flip();//need flip
         return buffer.getLong();
-    }
-
-    public void sendFile (final String filename) {
-        new Thread (new Runnable () {
-            @Override
-            public void run () {
-                byte[] data = new byte[4096];
-                FileInputStream in = null;
-                int read = 0;
-                int total_sent = 0;
-
-                try {
-                    in = new FileInputStream(filename);
-                    long totalAudioLen = in.getChannel().size();
-
-                    boolean error = false;
-                    byte [] startfilecommand = new byte [9];
-                    startfilecommand[0] = STARTFILE;
-                    byte [] filesize = longToBytes(totalAudioLen);
-                    for (int i = 0; i < filesize.length; i++) startfilecommand[i+1] = filesize[i];
-                    Log.v(TAG, "Sending file of length: " + totalAudioLen);
-
-
-                    mmOutStream.write(startfilecommand);
-                    mmOutStream.flush();
-
-                    try {
-                        Thread.currentThread().sleep(150);
-                    } catch (Exception e) {
-                    }
-
-                    total_sent = 0;
-
-                    while (!error) {
-                        read = in.read(data);
-                        error = (read == -1);
-                        if (error) {
-                            Log.e(TAG, "Reached end of file");
-                            break;
-                        }
-
-                        mmOutStream.write(data, 0, read);
-
-                        total_sent += read;
-                        myactivity.addInfo("Sending file - " + total_sent + "/" + totalAudioLen, 0);
-                        //Log.v(TAG, "Total sent " + total_sent + " and remaining " + (totalAudioLen - total_sent));
-                        if (totalAudioLen == total_sent) {
-                            myactivity.addInfo("Done sending file! :D", 250);
-                            Log.v(TAG, "Done sending file! :D");
-                            break;
-                        }
-                    }
-                } catch (Exception e) {
-                    myactivity.addInfo("Error from sending loop", 0);
-                }
-            }
-        }).start();
-
-    }
-
-    Runnable listener = new Runnable () {
-        public void run() {
-            int buflen = 1024;
-            final byte[] buffer = new byte[buflen];  // buffer store for the stream
-            int bytes; // bytes returned from read()
-            // Keep listening to the InputStream until an exception occurs
-            while (true) {
-                try {
-                    // Read from the InputStream
-                    bytes = mmInStream.read(buffer);
-                    Log.v(TAG, "Received " + bytes);
-                    for (int i = 0; i < bytes; i++) {
-                        int command = buffer[i];
-                        if (command == START_AUTOTUNE) {
-                            myactivity.player.changeSound(myactivity.player.autotuneSound);
-                            myactivity.player.setSoftwareVolume(0.2);
-                            myactivity.player.chirp();
-                        }
-                        else if (command == STOP_AUTOTUNE) {
-                            myactivity.player.stopChirp();
-                        }
-                        else if (command == START_NORMAL) {
-                            myactivity.player.changeSound(myactivity.player.beepbeepSound);
-                            myactivity.player.setSoftwareVolume(0.4);
-                        }
-                        else if (command == DO_TAP) myactivity.single.callOnClick();
-                        else if (command == DO_DRAW) myactivity.draw.callOnClick();
-                        else if (command == FASTMODE) myactivity.setSpeed("fast");
-                        else if (command == SLOWMODE) myactivity.setSpeed("slow");
-                    }
-                } catch (IOException e) {
-                    break;
-                }
-            }
-        }
-    };
-
-
-
-    public void tellPhone (byte COMMAND) {
-        // The input loop above might be locked on the inputstream.read
-        try {
-            mmOutStream.write(COMMAND);
-        } catch (Exception e) {}
-    }
-
-    /* Call this from the main activity to shutdown the connection */
-    public void cancel() {
-        try {
-            mmSocket.close();
-        } catch (IOException e) { }
     }
 }

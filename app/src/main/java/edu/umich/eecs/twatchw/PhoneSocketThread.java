@@ -29,7 +29,6 @@ class PhoneSocketThread {
 
     public static byte START = 6;
     public static byte STOP = 7;
-    public static byte STARTFILE = 8;
 
     public static byte FASTMODE = 9;
     public static byte SLOWMODE = 10;
@@ -125,7 +124,12 @@ class PhoneSocketThread {
     };
 
 
-
+    /**
+     * We tell commands to the phone on the same thread as the UI.
+     * This takes a very short time so its OK
+     *
+     * @param COMMAND
+     */
     public void tellPhone (byte COMMAND) {
         // The input loop above might be locked on the inputstream.read
         try {
