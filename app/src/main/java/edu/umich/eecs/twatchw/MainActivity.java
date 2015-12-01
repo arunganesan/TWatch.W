@@ -143,6 +143,7 @@ public class MainActivity extends Activity {
         }
 
         if (bsocket != null) bsocket.cancel();
+        fsaver.shutdown();
         setMode(Mode.CONNECTION);
     }
 
@@ -153,7 +154,7 @@ public class MainActivity extends Activity {
 
     /**
      * Call back from the phone bluetooth socket
-     * @param socket
+     * @param socket The socket of the phone connection
      */
     public void setBTSocket (BluetoothSocket socket) {
         phone_socket = socket;
@@ -163,8 +164,8 @@ public class MainActivity extends Activity {
 
 
     /**
-     * Callback function from
-     * @param socket
+     * Callback function from pc connector thread
+     * @param socket Socket of PC bluetooth. Used for streaming data.
      */
     public void setPCSocket (BluetoothSocket socket) {
         this.pc_socket = socket;
