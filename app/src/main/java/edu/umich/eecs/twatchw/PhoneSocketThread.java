@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 class PhoneSocketThread {
     private final BluetoothSocket mmSocket;
@@ -26,12 +27,11 @@ class PhoneSocketThread {
     byte START_NORMAL = 3;
     byte DO_TAP = 4;
     byte DO_DRAW = 5;
-
     public static byte START = 6;
     public static byte STOP = 7;
-
     public static byte FASTMODE = 9;
     public static byte SLOWMODE = 10;
+    public static byte SETSPACE = 11;
 
     private byte [] sendBuffer = new byte [44100];
 
@@ -115,6 +115,12 @@ class PhoneSocketThread {
                         else if (command == DO_DRAW) myactivity.draw.callOnClick();
                         else if (command == FASTMODE) myactivity.setSpeed("fast");
                         else if (command == SLOWMODE) myactivity.setSpeed("slow");
+                        else if (command == SETSPACE) {
+                            long new_space = bytesToLong(Arrays.copyOfRange(buffer, i+1, i+9));
+                            Log.v(TAG, "Setting space to " + new_space);
+                            myactivity.player.setSpace((int)new_space);
+                            i += 8;
+                        }
                     }
                 } catch (IOException e) {
                     break;

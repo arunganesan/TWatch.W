@@ -143,7 +143,7 @@ public class MainActivity extends Activity {
         }
 
         if (bsocket != null) bsocket.cancel();
-        fsaver.shutdown();
+        if (fsaver != null) fsaver.shutdown();
         setMode(Mode.CONNECTION);
     }
 
